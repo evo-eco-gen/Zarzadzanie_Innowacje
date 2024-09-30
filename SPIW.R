@@ -9,6 +9,28 @@ autocratic <- as.numeric(autocratic)
 autonomous <- as.numeric(autonomous)
 self_protective <- as.numeric(self_protective)
 
+# Map patents per thousand people (PPT)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(countrycode)
+library(tidyverse)
+
+# Normalise the country name codes using ISO
+inn$iso_a3 <- countrycode(inn$COUNTRIES, 'country.name', 'iso3c',
+                           custom_match = c("Czechia" = "CZE", "Korea" = "KOR", "Kazakhstan" = "KAZ", "France" = "FRA", "Norway" = "NOR"))
+world_inn <- left_join(world, inn, by = "iso_a3")
+
+# Plot the map with colours corresponding to log(PPT) to emphasise the differences.
+ggplot(world_inn) +
+  geom_sf(aes(fill = PPT)) +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey90",
+                       trans = "log",          # Apply logarithmic transformation
+                       breaks = c(0.005, 0.01, 0.05, 0.1, 0.25, 1, 3),  # Set custom breaks
+                       labels = scales::comma_format()) +   # Format labels
+  theme_minimal() +
+  labs(fill = "Patenty na 1000 mieszkańców",
+       caption = "Dane: WIPO")
+
 # Examine the distribution of the variables.
 shapiro.test(log(PPT+0.0001))
 hist(PPT_normalised)
